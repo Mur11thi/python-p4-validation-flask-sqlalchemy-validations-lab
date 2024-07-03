@@ -12,6 +12,24 @@ class Author(db.Model):
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
 
     # Add validators 
+    @validates('name')
+    def validates_author(self,key,name):
+        if not name:
+            raise ValueError("Name cannot be empty.")        
+    
+        existing_auth=Author.query.filter(Author.name==name).first()
+        if existing_auth and existing_auth.id != self.id:
+            raise ValueError("Name has already been taken.Enter a unique name.")
+        return name
+    
+    @validates('phone_number')
+    def validates_phone_number(self,key,phone_number):
+        
+        if len(phone_number) == 10:
+            return phone_number
+        else:
+            raise ValueError("Phone number has to be exactly 10 digits.")
+    
 
     def __repr__(self):
         return f'Author(id={self.id}, name={self.name})'
@@ -28,7 +46,26 @@ class Post(db.Model):
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
 
     # Add validators  
-
-
+    @validates('content')
+    def validates_content(self,key,content):
+        if len(content) < 250 :
+            raise ValueError('Post content should be at least be 250 characters long.')
+        return content
+    
+    @validates('summary')
+    def validates_summary(self,key,summary):
+        if len(summary) > 250:
+            raise ValueError("Post summary should be a maximum of 250 characters.")
+        return summary
+    @validates('category')
+    def validates_category(self,key,category):
+        if category not in ['Fiction','Non-Fiction']:
+            raise ValueError("Post Category  must either be Fiction or Non-Fiction ")
+        return category
+    @validates('title')
+    def validates_title(self,key,title):
+        if  not any (phrase in title for phrase in ["Won't Believe","Secret","Top","Guess"]):
+            raise ValueError("Title has to contain one of the following:'Won't' 'Believe','Secret','Top','Guess'")
+        return title
     def __repr__(self):
         return f'Post(id={self.id}, title={self.title} content={self.content}, summary={self.summary})'
